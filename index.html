@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="utf-8">
+<title>Smartphone INS Demo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Smartphone INS Demo</h1>
+
+<button id="start">Start Sensor</button> <button id="reset">Reset</button>
+
+<div class="panel">
+<h2>Acceleration</h2>
+ax: <span id="ax">0</span><br>
+ay: <span id="ay">0</span><br>
+</div>
+
+<div class="panel">
+<h2>Velocity</h2>
+vx: <span id="vx">0</span><br>
+vy: <span id="vy">0</span><br>
+</div>
+
+<div class="panel">
+<h2>Position</h2>
+x: <span id="px">0</span><br>
+y: <span id="py">0</span><br>
+</div>
+
+<canvas id="map" width="300" height="300"></canvas>
+
+<script src="ins.js"></script>
+
+</body>
+</html>
