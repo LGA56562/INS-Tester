@@ -12,6 +12,8 @@ const vy_text=document.getElementById("vy")
 const px_text=document.getElementById("px")
 const py_text=document.getElementById("py")
 
+const threshold_input=document.getElementById("threshold")
+
 const canvas=document.getElementById("map")
 const ctx=canvas.getContext("2d")
 
@@ -48,34 +50,10 @@ function handleMotion(e){
 let ax=e.acceleration.x||0
 let ay=e.acceleration.y||0
 
-let now=Date.now()
-
-if(!lastTime){
-lastTime=now
-return
-}
-
-let dt=(now-lastTime)/1000
-lastTime=now
-
-vx+=ax*dt
-vy+=ay*dt
-
-px+=vx*dt
-py+=vy*dt
-
-updateDisplay(ax,ay)
-
-}
-
-function handleMotion(e){
-
-let ax=e.acceleration.x||0
-let ay=e.acceleration.y||0
-
+// threshold取得
 let threshold=parseFloat(threshold_input.value)||0
 
-// Deadband filter
+// デッドバンドフィルタ
 if(Math.abs(ax)<threshold){ ax=0 }
 if(Math.abs(ay)<threshold){ ay=0 }
 
