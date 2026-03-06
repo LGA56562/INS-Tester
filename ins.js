@@ -68,6 +68,37 @@ updateDisplay(ax,ay)
 
 }
 
+function handleMotion(e){
+
+let ax=e.acceleration.x||0
+let ay=e.acceleration.y||0
+
+let threshold=parseFloat(threshold_input.value)||0
+
+// Deadband filter
+if(Math.abs(ax)<threshold){ ax=0 }
+if(Math.abs(ay)<threshold){ ay=0 }
+
+let now=Date.now()
+
+if(!lastTime){
+lastTime=now
+return
+}
+
+let dt=(now-lastTime)/1000
+lastTime=now
+
+vx+=ax*dt
+vy+=ay*dt
+
+px+=vx*dt
+py+=vy*dt
+
+updateDisplay(ax,ay)
+
+}
+
 document.getElementById("start").onclick=async function(){
 
 if(typeof DeviceMotionEvent.requestPermission==="function"){
