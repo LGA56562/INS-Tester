@@ -10,12 +10,13 @@
 body{
 font-family:sans-serif;
 text-align:center;
+margin:10px;
 }
 
 .panel{
-margin:10px;
-padding:10px;
 border:1px solid #aaa;
+padding:10px;
+margin:5px;
 display:inline-block;
 }
 
@@ -24,13 +25,17 @@ border:1px solid black;
 margin-top:10px;
 }
 
+input{
+width:80px;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<h1>Smartphone INS Education Demo</h1>
+<h2>Smartphone INS Demo</h2>
 
 <button id="start">Start Sensor</button> <button id="reset">Reset</button> <button id="zupt">ZUPT OFF</button>
 
@@ -57,22 +62,28 @@ y : <span id="py">0</span>
 <br>
 
 <div class="panel">
-<h3>Deadband Threshold</h3>
-<input type="range" id="threshold" min="0" max="0.3" step="0.005" value="0">
-<br>
-<span id="threshold_value">0</span> m/s²
+<h3>Attitude</h3>
+roll : <span id="roll">0</span><br>
+pitch : <span id="pitch">0</span><br>
+yaw : <span id="yaw">0</span>
 </div>
+
+<br>
 
 <div class="panel">
-<h3>Low Pass Filter</h3>
-<input type="range" id="lpf" min="0" max="1" step="0.01" value="0">
-<br>
-<span id="lpf_value">0</span>
+<h3>Filter Settings</h3>
+
+Acceleration Threshold<br> <input id="acc_th" type="number" value="0.03" step="0.01"><br><br>
+
+Velocity Threshold<br> <input id="vel_th" type="number" value="0.02" step="0.01"><br><br>
+
+LPF (0-1)<br> <input id="lpf" type="number" value="0.2" step="0.05">
+
 </div>
 
 <br>
 
-<canvas id="map" width="400" height="400"></canvas>
+<canvas id="map"></canvas>
 
 <script>
 
@@ -81,10 +92,10 @@ let vy=0
 let px=0
 let py=0
 
-let lastTime=null
-
 let ax_f=0
 let ay_f=0
+
+let lastTime=null
 
 let zupt=false
 
@@ -97,23 +108,34 @@ const vy_text=document.getElementById("vy")
 const px_text=document.getElementById("px")
 const py_text=document.getElementById("py")
 
-const threshold_slider=document.getElementById("threshold")
-const threshold_value=document.getElementById("threshold_value")
+const roll_text=document.getElementById("roll")
+const pitch_text=document.getElementById("pitch")
+const yaw_text=document.getElementById("yaw")
 
-const lpf_slider=document.getElementById("lpf")
-const lpf_value=document.getElementById("lpf_value")
+const acc_th=document.getElementById("acc_th")
+const vel_th=document.getElementById("vel_th")
+const lpf_box=document.getElementById("lpf")
 
 const canvas=document.getElementById("map")
+
+let size=Math.min(window.innerWidth*0.9,400)
+canvas.width=size
+canvas.height=size
+
 const ctx=canvas.getContext("2d")
 
-let cx=200
-let cy=200
+let cx=size/2
+let cy=size/2
 
 let path=[]
 
+let roll=0
+let pitch=0
+let yaw=0
+
 function draw(){
 
-ctx.clearRect(0,0,400,400)
+ctx.clearRect(0,0,size,size)
 
 ctx.beginPath()
 
@@ -146,23 +168,45 @@ vy_text.textContent=vy.toFixed(3)
 px_text.textContent=px.toFixed(3)
 py_text.textContent=py.toFixed(3)
 
-threshold_value.textContent=parseFloat(threshold_slider.value).toFixed(3)
-lpf_value.textContent=parseFloat(lpf_slider.value).toFixed(2)
+roll_text.textContent=roll.toFixed(1)
+pitch_text.textContent=pitch.toFixed(1)
+yaw_text.textContent=yaw.toFixed(1)
 
 draw()
 
 }
 
+function handleOrientation(e){
+
+roll=e.gamma||0
+pitch=e.beta||0
+yaw=e.alpha||0
+
+}
+
 function handleMotion(e){
 
-let ax=e.acceleration.x||0
-let ay=e.acceleration.y||0
+let ax=e.accelerationIncludingGravity.x||0
+let ay=e.accelerationIncludingGravity.y||0
+let az=e.accelerationIncludingGravity.z||0
 
-let threshold=parseFloat(threshold_slider.value)
-let alpha=parseFloat(lpf_slider.value)
+let g=9.81
 
-if(Math.abs(ax)<threshold) ax=0
-if(Math.abs(ay)<threshold) ay=0
+let pitch_r=pitch*Math.PI/180
+let roll_r=roll*Math.PI/180
+
+let gx=g*Math.sin(pitch_r)
+let gy=-g*Math.sin(roll_r)
+
+ax=ax-gx
+ay=ay-gy
+
+let acc_threshold=parseFloat(acc_th.value)
+let vel_threshold=parseFloat(vel_th.value)
+let alpha=parseFloat(lpf_box.value)
+
+if(Math.abs(ax)<acc_threshold) ax=0
+if(Math.abs(ay)<acc_threshold) ay=0
 
 ax_f=ax_f*(1-alpha)+ax*alpha
 ay_f=ay_f*(1-alpha)+ay*alpha
@@ -179,6 +223,9 @@ lastTime=now
 
 vx+=ax_f*dt
 vy+=ay_f*dt
+
+if(Math.abs(vx)<vel_threshold) vx=0
+if(Math.abs(vy)<vel_threshold) vy=0
 
 if(zupt){
 
@@ -214,6 +261,7 @@ return
 }
 
 window.addEventListener("devicemotion",handleMotion)
+window.addEventListener("deviceorientation",handleOrientation)
 
 }
 
@@ -233,13 +281,9 @@ document.getElementById("zupt").onclick=function(){
 zupt=!zupt
 
 if(zupt){
-
 this.textContent="ZUPT ON"
-
 }else{
-
 this.textContent="ZUPT OFF"
-
 }
 
 }
