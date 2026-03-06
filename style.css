@@ -1,0 +1,15 @@
+body{
+font-family: sans-serif;
+text-align:center;
+}
+
+.panel{
+margin:10px;
+padding:10px;
+border:1px solid #ccc;
+}
+
+canvas{
+border:1px solid black;
+margin-top:10px;
+}
